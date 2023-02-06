@@ -1,0 +1,5 @@
+function pointsGenerator() {}
+
+function treeGenerator() {
+  
+}
