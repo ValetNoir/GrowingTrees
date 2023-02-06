@@ -1,5 +1,3 @@
 function pointsGenerator() {}
 
-function treeGenerator() {
-  
-}
+function treeGenerator() {}
