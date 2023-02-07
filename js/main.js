@@ -1,5 +1,15 @@
-const HALF_SCREEN_WIDTH = 1500;
-const HALF_SCREEN_HEIGHT = 750;
+const canvas = document.querySelector("canvas");
+
+const SCREEN_WIDTH = canvas.width; // 3000;
+const SCREEN_HEIGHT = canvas.height; // 1500;
+const HALF_SCREEN_WIDTH = SCREEN_WIDTH / 2;
+const HALF_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
+
+const LITTLE_SQUARE_SIZE = 50;
+const BIG_SQUARE_SIZE = 250;
+const AXIS_NUMBER_FREQUENCY = 250;
+
+
 const myCircles = [
   {center: {x: 0, y: 0}, radius: 350},
   {center: {x: 500, y: 0}, radius: 200},
@@ -7,14 +17,25 @@ const myCircles = [
   // {center: {x: -200, y: -100}, radius: 150},
 ];
 
-const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 ctx.translate(HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT);
 ctx.imageSmoothingEnabled = false;
 
-draw();
+var MOUSE_POS = {x: 0, y: 0};
+canvas.addEventListener("mousemove", (e) => {
+  var rect = canvas.getBoundingClientRect(), // abs. size of element
+    scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
+    scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
+
+    MOUSE_POS.x = (e.clientX - rect.left) * scaleX - HALF_SCREEN_WIDTH,   // scale mouse coordinates after they have
+    MOUSE_POS.y = (e.clientY - rect.top ) * scaleY - HALF_SCREEN_HEIGHT     // been adjusted to be relative to element
+})
+
 function draw() {
+  clear();
   drawGrid();
+
+  myCircles[0].center = MOUSE_POS;
 
   ctx.lineWidth = 3;
   ctx.strokeStyle = 'blue';
@@ -23,11 +44,13 @@ function draw() {
   }
 }
 
+function clear() {
+  ctx.clearRect(-HALF_SCREEN_WIDTH, -HALF_SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
 function drawGrid() {
 
   // little grid
-  const LITTLE_SQUARE_SIZE = 50;
-
   ctx.strokeStyle = "#CCC8C0";
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -45,8 +68,6 @@ function drawGrid() {
 
 
   // big grid
-  const BIG_SQUARE_SIZE = 250;
-
   ctx.strokeStyle = "#A3A09A";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -75,7 +96,6 @@ function drawGrid() {
 
 
   // axis number
-  const AXIS_NUMBER_FREQUENCY = 100;
   ctx.fillStyle = "#82807B";
   ctx.font = "36px serif";
 
@@ -95,3 +115,5 @@ function drawGrid() {
   }
 
 }
+
+setInterval(draw, 10);

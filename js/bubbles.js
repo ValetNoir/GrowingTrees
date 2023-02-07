@@ -1,3 +1,6 @@
+const HALF_PI = Math.PI / 2;
+const TWO_PI = 2 * Math.PI;
+
 function getIntersectionPoints(c1, c2) {
   // after 5 hours of struggling to solve an equation, used the internet
   // https://www.petercollingridge.co.uk/tutorials/computational-geometry/circle-circle-intersections/
@@ -35,7 +38,6 @@ function getIntersectionPoints(c1, c2) {
 
 function bearing(center, target) {
   // https://math.stackexchange.com/questions/1596513/find-the-bearing-angle-between-two-points-in-a-2d-space
-  const TWO_PI = 2 * Math.PI;
   if(center.x == target.x && center.y == target.y) return null;
   let theta = Math.atan2(target.x - center.x, center.y - target.y);
   if(theta < 0.0) theta += TWO_PI;
@@ -45,7 +47,6 @@ function bearing(center, target) {
 
 class Bubble {
   constructor(circles, circleIndex) {
-    const HALF_PI = Math.PI / 2;
 
     this.center = circles[circleIndex].center;
     this.radius = circles[circleIndex].radius;
@@ -54,8 +55,7 @@ class Bubble {
     for(let i = 0; i < circles.length; i++) {
       if(i == circleIndex) continue;
       const points = getIntersectionPoints(circles[circleIndex], circles[i]);
-      if(points.length != 2) continue;
-      final_lines.push({a: points[0], b: points[1]});
+      if(points.length == 2) final_lines.push({a: points[0], b: points[1]});
     }
 
     this.lines = final_lines;
@@ -64,7 +64,10 @@ class Bubble {
 
     let final_path = new Path2D();
 
-    for(let i = 0; i < this.lines.length; i++) {
+    if(this.lines.length == 0) {
+      final_path.arc(this.center.x, this.center.y, this.radius, 0, TWO_PI, false);
+    }
+    else for(let i = 0; i < this.lines.length; i++) {
       final_path.arc(this.center.x, this.center.y, this.radius, bearing(this.center, this.lines[i].b) - HALF_PI, bearing(this.center, this.lines[i].a) - HALF_PI, false);
       final_path.moveTo(this.lines[i].a.x, this.lines[i].a.y);
       final_path.lineTo(this.lines[i].b.x, this.lines[i].b.y);
