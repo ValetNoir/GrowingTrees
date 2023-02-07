@@ -1,10 +1,10 @@
 const HALF_SCREEN_WIDTH = 1500;
 const HALF_SCREEN_HEIGHT = 750;
-const circles = [
+const myCircles = [
   {center: {x: 0, y: 0}, radius: 350},
   {center: {x: 500, y: 0}, radius: 200},
-  {center: {x: 300, y: 200}, radius: 300},
-  {center: {x: -200, y: -100}, radius: 150},
+  // {center: {x: 300, y: 200}, radius: 300},
+  // {center: {x: -200, y: -100}, radius: 150},
 ];
 
 const canvas = document.querySelector("canvas");
@@ -17,30 +17,14 @@ function draw() {
   drawGrid();
 
   ctx.lineWidth = 3;
-  for(let i = 0; i < circles.length; i++) {
-    ctx.strokeStyle = 'black';
-    ctx.beginPath();
-    ctx.arc(circles[i].center.x, circles[i].center.y, circles[i].radius, 0, 2 * Math.PI);
-    ctx.stroke();
-
-    ctx.strokeStyle = 'blue';
-    for(let j = 0; j < circles.length; j++) {
-      const points = getIntersectionPoints(circles[i], circles[j]);
-      let l = points.length;
-      if(l == 0) continue;
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for(let i2 = 1; i2 < points.length; i2++) {
-        ctx.lineTo(points[i2].x, points[i2].y);
-      }
-      ctx.stroke();
-    }
+  ctx.strokeStyle = 'blue';
+  for(let i = 0; i < myCircles.length; i++) {
+    ctx.stroke((new Bubble(myCircles, i)).path);
   }
 }
 
 function drawGrid() {
 
-  
   // little grid
   const LITTLE_SQUARE_SIZE = 50;
 
@@ -58,6 +42,7 @@ function drawGrid() {
     ctx.lineTo( HALF_SCREEN_WIDTH, i*LITTLE_SQUARE_SIZE);
   }
   ctx.stroke();
+
 
   // big grid
   const BIG_SQUARE_SIZE = 250;
@@ -77,6 +62,7 @@ function drawGrid() {
   }
   ctx.stroke();
 
+
   //axis
   ctx.strokeStyle = "#82807B";
   ctx.lineWidth = 5;
@@ -87,8 +73,8 @@ function drawGrid() {
   ctx.lineTo(0, HALF_SCREEN_HEIGHT);
   ctx.stroke();
 
-  // axis number
 
+  // axis number
   const AXIS_NUMBER_FREQUENCY = 100;
   ctx.fillStyle = "#82807B";
   ctx.font = "36px serif";
@@ -107,4 +93,5 @@ function drawGrid() {
     ctx.fillRect(-15, i*AXIS_NUMBER_FREQUENCY-2, 30, 4);
     ctx.fillText(`${i*AXIS_NUMBER_FREQUENCY}`, -15, i*AXIS_NUMBER_FREQUENCY);
   }
+
 }
