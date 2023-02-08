@@ -36,12 +36,52 @@ function getIntersectionPoints(c1, c2) {
   ];
 }
 
+function getIntersectionPoint(line1, line2) {
+  // http://paulbourke.net/geometry/pointlineplane/
+
+  // Check if none of the lines are of length 0
+	if ((line1.a.x === line1.b.x && line1.a.y === line1.b.y) || (line2.a.x === line2.b.x && line2.a.y === line2.b.y)) {
+		return false
+	}
+
+	denominator = ((line2.b.y - line2.a.y) * (line1.b.x - line1.a.x) - (line2.b.x - line2.a.x) * (line1.b.y - line1.a.y))
+
+  // Lines are parallel
+	if (denominator === 0) {
+		return false
+	}
+
+	let ua = ((line2.b.x - line2.a.x) * (line1.a.y - line2.a.y) - (line2.b.y - line2.a.y) * (line1.a.x - line2.a.x)) / denominator
+	let ub = ((line1.b.x - line1.a.x) * (line1.a.y - line2.a.y) - (line1.b.y - line1.a.y) * (line1.a.x - line2.a.x)) / denominator
+
+  // Is the intersection along the segments
+	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+		return false
+	}
+
+  // Return a object with the x and y coordinates of the intersection
+	return {
+    x: line1.a.x + ua * (line1.b.x - line1.a.x),
+    y: line1.a.y + ua * (line1.b.y - line1.a.y)
+  }
+}
+
 function bearing(center, target) {
   // https://math.stackexchange.com/questions/1596513/find-the-bearing-angle-between-two-points-in-a-2d-space
   if(center.x == target.x && center.y == target.y) return null;
   let theta = Math.atan2(target.x - center.x, center.y - target.y);
   if(theta < 0.0) theta += TWO_PI;
   return theta - HALF_PI;
+}
+
+function intersectLines(lines, lineIndex) {
+  let final_lines = [];
+  for(let i = 0; i < lines.length; i++) {
+    if(i == lineIndex) continue;
+    let intersection = getIntersectionPoint(lines[lineIndex], lines[i]);
+    if(intersection == false) continue;
+    
+  }
 }
 
 
@@ -52,14 +92,23 @@ class Bubble {
     this.radius = circles[circleIndex].radius;
     
     let angles = [];
+    // let lines = [];
+
+    // check intersections between circles
     for(let i = 0; i < circles.length; i++) {
       if(i == circleIndex) continue;
       const points = getIntersectionPoints(circles[circleIndex], circles[i]);
+      // if(points.length == 2) lines.push({a: points[0], b: points[1]});
       if(points.length == 2) {
         angles.push({point: points[0], angle: bearing(this.center, points[0]), id: i});
         angles.push({point: points[1], angle: bearing(this.center, points[1]), id: i});
       }
     }
+
+    // check intersections between lines
+    // for(let i = 0; i < lines.length; i++) {
+    //   for()
+    // }
 
     // create draw path
 

@@ -43,8 +43,8 @@ function draw() {
   myCircles[0].center = MOUSE_POS;
 
   ctx.lineWidth = 3;
-  ctx.strokeStyle = 'blue';
   for(let i = 0; i < myCircles.length; i++) {
+    ctx.strokeStyle = 'blue';
     ctx.stroke((new Bubble(myCircles, i)).path);
   }
 }
