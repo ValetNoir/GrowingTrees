@@ -5,7 +5,7 @@ const SCREEN_HEIGHT = canvas.height; // 1500;
 const HALF_SCREEN_WIDTH = SCREEN_WIDTH / 2;
 const HALF_SCREEN_HEIGHT = SCREEN_HEIGHT / 2;
 
-const LITTLE_SQUARE_SIZE = 50;
+const LITTLE_SQUARE_SIZE = 50;  
 const BIG_SQUARE_SIZE = 250;
 const AXIS_NUMBER_FREQUENCY = 250;
 
@@ -14,7 +14,7 @@ const myCircles = [
   {center: {x: 0, y: 0}, radius: 350},
   {center: {x: 500, y: 0}, radius: 200},
   // {center: {x: 300, y: 200}, radius: 300},
-  // {center: {x: -200, y: -100}, radius: 150},
+  {center: {x: -200, y: -100}, radius: 150},
 ];
 
 const ctx = canvas.getContext("2d");

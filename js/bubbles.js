@@ -41,7 +41,7 @@ function bearing(center, target) {
   if(center.x == target.x && center.y == target.y) return null;
   let theta = Math.atan2(target.x - center.x, center.y - target.y);
   if(theta < 0.0) theta += TWO_PI;
-  return theta;
+  return theta - HALF_PI;
 }
 
 
@@ -51,26 +51,42 @@ class Bubble {
     this.center = circles[circleIndex].center;
     this.radius = circles[circleIndex].radius;
     
-    let final_lines = [];
+    let angles = [];
     for(let i = 0; i < circles.length; i++) {
       if(i == circleIndex) continue;
       const points = getIntersectionPoints(circles[circleIndex], circles[i]);
-      if(points.length == 2) final_lines.push({a: points[0], b: points[1]});
+      if(points.length == 2) {
+        angles.push({point: points[0], angle: bearing(this.center, points[0]), id: i});
+        angles.push({point: points[1], angle: bearing(this.center, points[1]), id: i});
+      }
     }
-
-    this.lines = final_lines;
 
     // create draw path
 
     let final_path = new Path2D();
 
-    if(this.lines.length == 0) {
-      final_path.arc(this.center.x, this.center.y, this.radius, 0, TWO_PI, false);
+    if(angles.length == 0) {
+      final_path.arc(this.center.x, this.center.y, this.radius, 0, TWO_PI);
     }
-    else for(let i = 0; i < this.lines.length; i++) {
-      final_path.arc(this.center.x, this.center.y, this.radius, bearing(this.center, this.lines[i].b) - HALF_PI, bearing(this.center, this.lines[i].a) - HALF_PI, false);
-      final_path.moveTo(this.lines[i].a.x, this.lines[i].a.y);
-      final_path.lineTo(this.lines[i].b.x, this.lines[i].b.y);
+    else {
+      angles.sort((a, b) => a.angle - b.angle);
+      let last = angles.length-1;
+      if(angles[last].id == angles[0].id) {
+        final_path.moveTo(angles[last].point.x, angles[last].point.y);
+        final_path.lineTo(angles[0].point.x, angles[0].point.y);
+      }
+      else {
+        final_path.arc(this.center.x, this.center.y, this.radius, angles[last].angle, angles[0].angle, false);
+      }
+      for(let i = 0; i < last; i++) {
+        if(angles[i].id == angles[i+1].id) {
+          final_path.moveTo(angles[i].point.x, angles[i].point.y);
+          final_path.lineTo(angles[i+1].point.x, angles[i+1].point.y);
+        }
+        else {
+          final_path.arc(this.center.x, this.center.y, this.radius, angles[i].angle, angles[i+1].angle, false);
+        }
+      }
     }
 
     this.path = final_path;
