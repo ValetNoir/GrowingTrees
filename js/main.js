@@ -22,14 +22,19 @@ ctx.translate(HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT);
 ctx.imageSmoothingEnabled = false;
 
 var MOUSE_POS = {x: 0, y: 0};
-canvas.addEventListener("mousemove", (e) => {
+canvas.addEventListener("mousemove", handleClick);
+canvas.addEventListener("touchstart", handleClick);
+canvas.addEventListener("touchmove", handleClick);
+canvas.addEventListener("touchend", handleClick);
+
+function handleClick(e) {
   var rect = canvas.getBoundingClientRect(), // abs. size of element
     scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
     scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
 
-    MOUSE_POS.x = (e.clientX - rect.left) * scaleX - HALF_SCREEN_WIDTH,   // scale mouse coordinates after they have
-    MOUSE_POS.y = (e.clientY - rect.top ) * scaleY - HALF_SCREEN_HEIGHT     // been adjusted to be relative to element
-})
+  MOUSE_POS.x = (e.clientX - rect.left) * scaleX - HALF_SCREEN_WIDTH,   // scale mouse coordinates after they have
+  MOUSE_POS.y = (e.clientY - rect.top ) * scaleY - HALF_SCREEN_HEIGHT     // been adjusted to be relative to element
+}
 
 function draw() {
   clear();

@@ -77,12 +77,10 @@ class Bubble {
         final_path.lineTo(angles[0].point.x, angles[0].point.y);
       }
       else {
-        console.log("yes")
         final_path.arc(this.center.x, this.center.y, this.radius, angles[last].angle, angles[0].angle);
       }
       for(let i = 0; i < last; i++) {
         if(angles[i].id == angles[i+1].id) {
-          console.log(angles)
           final_path.moveTo(angles[i].point.x, angles[i].point.y);
           final_path.lineTo(angles[i+1].point.x, angles[i+1].point.y);
         }
