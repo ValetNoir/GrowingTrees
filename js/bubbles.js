@@ -70,21 +70,24 @@ class Bubble {
     }
     else {
       angles.sort((a, b) => a.angle - b.angle);
+      angles.unshift({point: angles[0].point, angle: angles[0].angle, id: -1});
       let last = angles.length-1;
       if(angles[last].id == angles[0].id) {
         final_path.moveTo(angles[last].point.x, angles[last].point.y);
         final_path.lineTo(angles[0].point.x, angles[0].point.y);
       }
       else {
-        final_path.arc(this.center.x, this.center.y, this.radius, angles[last].angle, angles[0].angle, false);
+        console.log("yes")
+        final_path.arc(this.center.x, this.center.y, this.radius, angles[last].angle, angles[0].angle);
       }
       for(let i = 0; i < last; i++) {
         if(angles[i].id == angles[i+1].id) {
+          console.log(angles)
           final_path.moveTo(angles[i].point.x, angles[i].point.y);
           final_path.lineTo(angles[i+1].point.x, angles[i+1].point.y);
         }
         else {
-          final_path.arc(this.center.x, this.center.y, this.radius, angles[i].angle, angles[i+1].angle, false);
+          final_path.arc(this.center.x, this.center.y, this.radius, angles[i].angle, angles[i+1].angle);
         }
       }
     }

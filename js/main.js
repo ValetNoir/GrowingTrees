@@ -11,7 +11,7 @@ const AXIS_NUMBER_FREQUENCY = 250;
 
 
 const myCircles = [
-  {center: {x: 0, y: 0}, radius: 350},
+  {center: {x: 0, y: 0}, radius: 300},
   {center: {x: 500, y: 0}, radius: 200},
   // {center: {x: 300, y: 200}, radius: 300},
   {center: {x: -200, y: -100}, radius: 150},
