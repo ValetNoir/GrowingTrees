@@ -11,9 +11,8 @@ const AXIS_NUMBER_FREQUENCY = 250;
 
 
 const myCircles = [
-  // {center: {x: 0, y: 0}, radius: 200},
-  {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 0}, radius: 200},
+  {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 200}, radius: 200},
   // {center: {x: -200, y: -100}, radius: 100},
   // {center: {x: 200, y: -100}, radius: 200},
@@ -40,18 +39,19 @@ function handleClick(e) {
 
 function draw() {
   clear();
-  drawGrid();
+  ctx.globalAlpha = 1;
+  // drawGrid();
+  ctx.globalAlpha = 0.5;
 
-  // myCircles[0].center = MOUSE_POS;
+  myCircles[0].center = MOUSE_POS;
 
   ctx.lineWidth = 3;
   ctx.strokeStyle = "blue";
-  // let final = bubble(myCircles, 0)
-  let final = [];
+  let a = 360 / myCircles.length;
   for(let i = 0; i < myCircles.length; i++) {
-    final = final.concat(bubble(myCircles, i));
+    ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
+    drawShape(bubble(myCircles, i));
   }
-  drawShape(final);
 }
 
 function clear() {
@@ -132,12 +132,12 @@ function drawPoint(point) {
 }
 
 function drawShape(paths) {
-  let a = 360 / paths.length;
+  // let a = 360 / paths.length;
   for(let i = 0; i < paths.length; i++) {
-    ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
+    // ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
     ctx.stroke(paths[i]);
   }
 }
 
-draw()
-// setInterval(draw, 10);
+// draw()
+setInterval(draw, 10);

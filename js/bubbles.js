@@ -3,39 +3,55 @@
 const HALF_PI = Math.PI / 2;
 const TWO_PI = 2 * Math.PI;
 
-function getIntersectionPoints(c1, c2) {
+function getIntersectionPoints(myCircle, otherCircle) {
   // after 5 hours of struggling to solve an equation, used the internet
   // https://www.petercollingridge.co.uk/tutorials/computational-geometry/circle-circle-intersections/
 
-  let dx = c2.center.x - c1.center.x;
-  let dy = c2.center.y - c1.center.y;
+  let dx = otherCircle.center.x - myCircle.center.x;
+  let dy = otherCircle.center.y - myCircle.center.y;
   const d = Math.sqrt(dx * dx + dy * dy);
 
   // Circles too far apart
-  if (d > c1.radius + c2.radius) { return []; }
+  if (d > myCircle.radius + otherCircle.radius) { return false; }
 
   // One circle completely inside the other
-  if (d < Math.abs(c1.radius - c2.radius)) { return []; }
+  if (d < Math.abs(myCircle.radius - otherCircle.radius)) { return false; }
 
   dx /= d;
   dy /= d;
 
-  const a = (c1.radius * c1.radius - c2.radius * c2.radius + d * d) / (2 * d);
-  const px = c1.center.x + a * dx;
-  const py = c1.center.y + a * dy;
+  const a = (myCircle.radius * myCircle.radius - otherCircle.radius * otherCircle.radius + d * d) / (2 * d);
+  const px = myCircle.center.x + a * dx;
+  const py = myCircle.center.y + a * dy;
 
-  const h = Math.sqrt(c1.radius * c1.radius - a * a);
+  const h = Math.sqrt(myCircle.radius * myCircle.radius - a * a);
 
-  return [
-    {
-      x: px + h * dy,
-      y: py - h * dx
-    },
-    {
-      x: px - h * dy,
-      y: py + h * dx
-    }
-  ];
+  let point1 = {x: px + h * dy, y: py - h * dx};
+  let point2 = {x: px - h * dy, y: py + h * dx};
+  
+  // order the point so we can use them (ESSENTIAL !!!) // apparently not
+  
+  // A needs to always be at the right of the other circle's center
+  let side = directionOfPoint(otherCircle.center, myCircle.center, point1);
+  if(side == 1)       {return {a: point1, b: point2};}
+  else if(side == -1) {return {a: point2, b: point1};}
+  else return false; // would mean that there is only one point of intersection, and I don't want to handle that
+}
+
+function directionOfPoint(center, direction, point) {
+  // https://www.geeksforgeeks.org/direction-point-line-segment/
+  // https://www.youtube.com/watch?v=VMVuKpj_RQQ
+
+  // subtracting co-ordinates of point A
+  // from B and P, to make A as origin
+  let a = {x: direction.x - center.x, y: direction.y - center.y};
+  let b = {x: point.x - center.x, y: point.y - center.y};
+
+  // Determining cross Product
+  let cross_product = a.x * b.y - a.y * b.x;
+
+  // Right if positive, Left is negative
+  return Math.sign(cross_product);
 }
 
 function getIntersectionPoint(line1, line2) {
@@ -84,22 +100,20 @@ function intersectLines(lines, lineIndex, center) {
     if(i == lineIndex) continue;
     let intersection = getIntersectionPoint(current_line, lines[i]);
     if(intersection == false) continue;
-    if(isLineAngleAllowed(lines, lineIndex, false)) {current_line.a = intersection; current_line.angle_a = bearing(center, intersection)}
-    else if(isLineAngleAllowed(lines, lineIndex, true)) {current_line.b = intersection; current_line.angle_b = bearing(center, intersection)}
-    else {console.log("impossible:", current_line)}
+    if(isAngleBetween(current_line.angle_b, lines[i].angle_a, lines[i].angle_b)) {current_line.b = intersection; current_line.angle_b = bearing(center, intersection)}
+    else {current_line.a = intersection; current_line.angle_a = bearing(center, intersection)}
   }
   return current_line;
 }
 
-function isLineAngleAllowed(lines, lineIndex, isB) {
-  let allowed = true;
-  let angle = isB? lines[lineIndex].angle_b : lines[lineIndex].angle_a;
-  for(let i = 0; i < lines.length; i++) {
-    if(i == lineIndex) continue;
-    if(lines[i].angle_a > angle && lines[i].angle_b < angle)
-      allowed = false;
-  }
-  return allowed;
+function isAngleBetween(angle, min_angle, max_angle) {
+  // https://stackoverflow.com/questions/11406189/determine-if-angle-lies-between-2-other-angles
+
+  // check if it passes through zero
+  if (min_angle <= max_angle)
+    return angle >= min_angle && angle <= max_angle;
+  else
+    return angle >= min_angle || angle <= max_angle;
 }
 
 function bubble(circles, circleIndex) {
@@ -107,66 +121,60 @@ function bubble(circles, circleIndex) {
   let radius = circles[circleIndex].radius;
   
   let lines = [];
-  let angles = [];
+  let intersectedLines = [];
   let paths = [];
 
   // check intersections between circles
   for(let i = 0; i < circles.length; i++) {
     if(i == circleIndex) continue;
-    const points = getIntersectionPoints(circles[circleIndex], circles[i]);
-    if(points.length == 2)
+    const line = getIntersectionPoints(circles[circleIndex], circles[i]);
+    if(line != false)
       lines.push({
-        a: points[0],
-        b: points[1],
-        angle_a: bearing(center, points[0]),
-        angle_b: bearing(center, points[1])
+        a: line.a,
+        b: line.b,
+        angle_a: bearing(center, line.a),
+        angle_b: bearing(center, line.b)
       });
   }
 
-  // let intersectedLines = [];
   // check intersections between lines
   for(let i = 0; i < lines.length; i++) {
     let line = intersectLines(lines, i, center);
     // let line = lines[i];
-    angles.push(
-      {point: line.a, angle: line.angle_a, id: i, line: true},
-      {point: line.b, angle: line.angle_b, id: i, line: false},
-    );
+    intersectedLines.push(line);
   }
 
   // create draw path
-  if(angles.length == 0) {
+  if(intersectedLines.length == 0) {
     let path = new Path2D();
     path.arc(center.x, center.y, radius, 0, TWO_PI);
     paths.push(path);
   }
   else {
     // angles.sort((a, b) => a.angle - b.angle)
-    let last = angles.length - 1;
-    if(angles[last].id == angles[0].id && angles[last].line) {
-      let path = new Path2D();
-      path.moveTo(angles[last].point.x, angles[last].point.y);
-      path.lineTo(angles[0].point.x, angles[0].point.y);
-      paths.push(path);
-    }
-    else {
-      let path = new Path2D();
-      path.arc(center.x, center.y, radius, angles[last].angle, angles[0].angle);
-      paths.push(path);
-    }
+    let last = intersectedLines.length - 1;
     for(let i = 0; i < last; i++) {
-      if(angles[i].id == angles[i + 1].id && angles[i].line) {
-        let path = new Path2D();
-        path.moveTo(angles[i].point.x, angles[i].point.y);
-        path.lineTo(angles[i + 1].point.x, angles[i + 1].point.y);
-        paths.push(path);
-      }
-      else {
-        let path = new Path2D();
-        path.arc(center.x, center.y, radius, angles[i].angle, angles[i + 1].angle);
-        paths.push(path);
-      }
+      // draw line
+      let path = new Path2D();
+      path.moveTo(intersectedLines[i].a.x, intersectedLines[i].a.y);
+      path.lineTo(intersectedLines[i].b.x, intersectedLines[i].b.y);
+      paths.push(path);
+
+      // draw arc to the new line
+      path = new Path2D();
+      path.arc(center.x, center.y, radius, intersectedLines[i].angle_b, intersectedLines[i + 1].angle_a);
+      paths.push(path);
     }
+    // draw line
+    let path = new Path2D();
+    path.moveTo(intersectedLines[last].a.x, intersectedLines[last].a.y);
+    path.lineTo(intersectedLines[last].b.x, intersectedLines[last].b.y);
+    paths.push(path);
+
+    // draw arc to the new line
+    path = new Path2D();
+    path.arc(center.x, center.y, radius, intersectedLines[last].angle_b, intersectedLines[0].angle_a);
+    paths.push(path);
   }
 
   return paths;
