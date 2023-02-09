@@ -11,10 +11,12 @@ const AXIS_NUMBER_FREQUENCY = 250;
 
 
 const myCircles = [
-  {center: {x: 0, y: 0}, radius: 300},
-  {center: {x: 500, y: 0}, radius: 200},
-  {center: {x: 300, y: 200}, radius: 300},
-  {center: {x: -200, y: -100}, radius: 150},
+  // {center: {x: 0, y: 0}, radius: 200},
+  {center: {x: 200, y: 0}, radius: 200},
+  {center: {x: 0, y: 0}, radius: 200},
+  {center: {x: 0, y: 200}, radius: 200},
+  // {center: {x: -200, y: -100}, radius: 100},
+  // {center: {x: 200, y: -100}, radius: 200},
 ];
 
 const ctx = canvas.getContext("2d");
@@ -40,13 +42,16 @@ function draw() {
   clear();
   drawGrid();
 
-  myCircles[0].center = MOUSE_POS;
+  // myCircles[0].center = MOUSE_POS;
 
   ctx.lineWidth = 3;
+  ctx.strokeStyle = "blue";
+  // let final = bubble(myCircles, 0)
+  let final = [];
   for(let i = 0; i < myCircles.length; i++) {
-    ctx.strokeStyle = 'blue';
-    ctx.stroke((new Bubble(myCircles, i)).path);
+    final = final.concat(bubble(myCircles, i));
   }
+  drawShape(final);
 }
 
 function clear() {
@@ -121,4 +126,18 @@ function drawGrid() {
 
 }
 
-setInterval(draw, 10);
+function drawPoint(point) {
+  ctx.fillRect(point.x - 10, point.y - 2, 20, 4);
+  ctx.fillRect(point.x - 2, point.y - 10, 4, 20);
+}
+
+function drawShape(paths) {
+  let a = 360 / paths.length;
+  for(let i = 0; i < paths.length; i++) {
+    ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
+    ctx.stroke(paths[i]);
+  }
+}
+
+draw()
+// setInterval(draw, 10);

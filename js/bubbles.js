@@ -1,3 +1,5 @@
+// with the contributions of pretty much the entire Gabe's server
+
 const HALF_PI = Math.PI / 2;
 const TWO_PI = 2 * Math.PI;
 
@@ -60,10 +62,12 @@ function getIntersectionPoint(line1, line2) {
 	}
 
   // Return a object with the x and y coordinates of the intersection
-	return {
+	let final = {
     x: line1.a.x + ua * (line1.b.x - line1.a.x),
     y: line1.a.y + ua * (line1.b.y - line1.a.y)
   }
+
+  return final;
 }
 
 function bearing(center, target) {
@@ -74,71 +78,96 @@ function bearing(center, target) {
   return theta - HALF_PI;
 }
 
-function intersectLines(lines, lineIndex) {
-  let final_lines = [];
+function intersectLines(lines, lineIndex, center) {
+  let current_line = lines[lineIndex];
   for(let i = 0; i < lines.length; i++) {
     if(i == lineIndex) continue;
-    let intersection = getIntersectionPoint(lines[lineIndex], lines[i]);
+    let intersection = getIntersectionPoint(current_line, lines[i]);
     if(intersection == false) continue;
-    
+    if(isLineAngleAllowed(lines, lineIndex, false)) {current_line.a = intersection; current_line.angle_a = bearing(center, intersection)}
+    else if(isLineAngleAllowed(lines, lineIndex, true)) {current_line.b = intersection; current_line.angle_b = bearing(center, intersection)}
+    else {console.log("impossible:", current_line)}
   }
+  return current_line;
 }
 
+function isLineAngleAllowed(lines, lineIndex, isB) {
+  let allowed = true;
+  let angle = isB? lines[lineIndex].angle_b : lines[lineIndex].angle_a;
+  for(let i = 0; i < lines.length; i++) {
+    if(i == lineIndex) continue;
+    if(lines[i].angle_a > angle && lines[i].angle_b < angle)
+      allowed = false;
+  }
+  return allowed;
+}
 
-class Bubble {
-  constructor(circles, circleIndex) {
+function bubble(circles, circleIndex) {
+  let center = circles[circleIndex].center;
+  let radius = circles[circleIndex].radius;
+  
+  let lines = [];
+  let angles = [];
+  let paths = [];
 
-    this.center = circles[circleIndex].center;
-    this.radius = circles[circleIndex].radius;
-    
-    let angles = [];
-    // let lines = [];
+  // check intersections between circles
+  for(let i = 0; i < circles.length; i++) {
+    if(i == circleIndex) continue;
+    const points = getIntersectionPoints(circles[circleIndex], circles[i]);
+    if(points.length == 2)
+      lines.push({
+        a: points[0],
+        b: points[1],
+        angle_a: bearing(center, points[0]),
+        angle_b: bearing(center, points[1])
+      });
+  }
 
-    // check intersections between circles
-    for(let i = 0; i < circles.length; i++) {
-      if(i == circleIndex) continue;
-      const points = getIntersectionPoints(circles[circleIndex], circles[i]);
-      // if(points.length == 2) lines.push({a: points[0], b: points[1]});
-      if(points.length == 2) {
-        angles.push({point: points[0], angle: bearing(this.center, points[0]), id: i});
-        angles.push({point: points[1], angle: bearing(this.center, points[1]), id: i});
-      }
-    }
+  // let intersectedLines = [];
+  // check intersections between lines
+  for(let i = 0; i < lines.length; i++) {
+    let line = intersectLines(lines, i, center);
+    // let line = lines[i];
+    angles.push(
+      {point: line.a, angle: line.angle_a, id: i, line: true},
+      {point: line.b, angle: line.angle_b, id: i, line: false},
+    );
+  }
 
-    // check intersections between lines
-    // for(let i = 0; i < lines.length; i++) {
-    //   for()
-    // }
-
-    // create draw path
-
-    let final_path = new Path2D();
-
-    if(angles.length == 0) {
-      final_path.arc(this.center.x, this.center.y, this.radius, 0, TWO_PI);
+  // create draw path
+  if(angles.length == 0) {
+    let path = new Path2D();
+    path.arc(center.x, center.y, radius, 0, TWO_PI);
+    paths.push(path);
+  }
+  else {
+    // angles.sort((a, b) => a.angle - b.angle)
+    let last = angles.length - 1;
+    if(angles[last].id == angles[0].id && angles[last].line) {
+      let path = new Path2D();
+      path.moveTo(angles[last].point.x, angles[last].point.y);
+      path.lineTo(angles[0].point.x, angles[0].point.y);
+      paths.push(path);
     }
     else {
-      angles.sort((a, b) => a.angle - b.angle);
-      angles.unshift({point: angles[0].point, angle: angles[0].angle, id: -1});
-      let last = angles.length-1;
-      if(angles[last].id == angles[0].id) {
-        final_path.moveTo(angles[last].point.x, angles[last].point.y);
-        final_path.lineTo(angles[0].point.x, angles[0].point.y);
+      let path = new Path2D();
+      path.arc(center.x, center.y, radius, angles[last].angle, angles[0].angle);
+      paths.push(path);
+    }
+    for(let i = 0; i < last; i++) {
+      if(angles[i].id == angles[i + 1].id && angles[i].line) {
+        let path = new Path2D();
+        path.moveTo(angles[i].point.x, angles[i].point.y);
+        path.lineTo(angles[i + 1].point.x, angles[i + 1].point.y);
+        paths.push(path);
       }
       else {
-        final_path.arc(this.center.x, this.center.y, this.radius, angles[last].angle, angles[0].angle);
-      }
-      for(let i = 0; i < last; i++) {
-        if(angles[i].id == angles[i+1].id) {
-          final_path.moveTo(angles[i].point.x, angles[i].point.y);
-          final_path.lineTo(angles[i+1].point.x, angles[i+1].point.y);
-        }
-        else {
-          final_path.arc(this.center.x, this.center.y, this.radius, angles[i].angle, angles[i+1].angle);
-        }
+        let path = new Path2D();
+        path.arc(center.x, center.y, radius, angles[i].angle, angles[i + 1].angle);
+        paths.push(path);
       }
     }
-
-    this.path = final_path;
   }
+
+  return paths;
 }
