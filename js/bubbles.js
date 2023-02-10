@@ -186,7 +186,7 @@ function bubble(circles, circleIndex) {
     // console.log("\n");
     let line = intersectLines(lines, i, center);
     intersectedLines.push(line);
-    if(!isLineAllowed(lines, i)) continue;
+    // if(!isLineAllowed(lines, i)) continue;
     points.push(
       {x: line.a.x, y: line.a.y, angle: line.angle_a, lineId: i, pointId: "A"},
       {x: line.b.x, y: line.b.y, angle: line.angle_b, lineId: i, pointId: "B"}
