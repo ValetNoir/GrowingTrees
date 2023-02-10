@@ -14,9 +14,32 @@ const myCircles = [
   {center: {x: 0, y: 0}, radius: 200},
   {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 200}, radius: 200},
-  // {center: {x: -200, y: -100}, radius: 100},
-  // {center: {x: 200, y: -100}, radius: 200},
+  {center: {x: 200, y: 200}, radius: 200},
+  // {center: {x: 100, y: 100}, radius: 100},
 ];
+
+// console.log(
+//   getIntersectionPoint(
+//     {
+//       a: {x: 0, y: 0},
+//       b: {x: 200, y: 200}
+//     },
+//     {
+//       a: {x: -173.20508075688772, y: 100},
+//       b: {x: 100, y: 100}
+//     },
+//   ),
+//   getIntersectionPoint(
+//     {
+//       a: {x: -173.20508075688772, y: 100},
+//       b: {x: 99.99999999999997, y: 100}
+//     },
+//     {
+//       a: {x: 0, y: 0},
+//       b: {x: 200, y: 200}
+//     },
+//   )
+// )
 
 const ctx = canvas.getContext("2d");
 ctx.translate(HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT);
@@ -40,17 +63,22 @@ function handleClick(e) {
 function draw() {
   clear();
   ctx.globalAlpha = 1;
-  // drawGrid();
+  drawGrid();
   ctx.globalAlpha = 0.5;
 
   myCircles[0].center = MOUSE_POS;
 
   ctx.lineWidth = 3;
   ctx.strokeStyle = "blue";
-  let a = 360 / myCircles.length;
+  let a = 360 / myCircles.length - 1;
   for(let i = 0; i < myCircles.length; i++) {
     ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
     drawShape(bubble(myCircles, i));
+  }
+
+  for(let i = 0; i < P.length; i ++) {
+    ctx.fillStyle = ctx.strokeStyle = "hsl(" + a * P[i].index + ",100%,50%)";;
+    drawPoint(P[i].point);
   }
 }
 
@@ -139,5 +167,5 @@ function drawShape(paths) {
   }
 }
 
-// draw()
-setInterval(draw, 10);
+draw();
+// setInterval(draw, 30);

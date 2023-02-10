@@ -1,7 +1,22 @@
-// with the contributions of pretty much the entire Gabe's server
+/*
+With the contributions of:
+- Arkonny
+- OmniSudo
+- Valor
+- Gerk
+- Gabe Rundlett
+- Saky
+- dottedboxguy
+- Exsolotus
+*/
+
+function log(label, value) {
+  console.log(label, " -> ", JSON.parse(JSON.stringify(value)));
+}
 
 const HALF_PI = Math.PI / 2;
 const TWO_PI = 2 * Math.PI;
+var P = [];
 
 function getIntersectionPoints(myCircle, otherCircle) {
   // after 5 hours of struggling to solve an equation, used the internet
@@ -59,14 +74,14 @@ function getIntersectionPoint(line1, line2) {
 
   // Check if none of the lines are of length 0
 	if ((line1.a.x === line1.b.x && line1.a.y === line1.b.y) || (line2.a.x === line2.b.x && line2.a.y === line2.b.y)) {
-		return false
+		return false;
 	}
 
-	denominator = ((line2.b.y - line2.a.y) * (line1.b.x - line1.a.x) - (line2.b.x - line2.a.x) * (line1.b.y - line1.a.y))
+	let denominator = ((line2.b.y - line2.a.y) * (line1.b.x - line1.a.x) - (line2.b.x - line2.a.x) * (line1.b.y - line1.a.y))
 
   // Lines are parallel
 	if (denominator === 0) {
-		return false
+		return false;
 	}
 
 	let ua = ((line2.b.x - line2.a.x) * (line1.a.y - line2.a.y) - (line2.b.y - line2.a.y) * (line1.a.x - line2.a.x)) / denominator
@@ -74,7 +89,7 @@ function getIntersectionPoint(line1, line2) {
 
   // Is the intersection along the segments
 	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-		return false
+		return false;
 	}
 
   // Return a object with the x and y coordinates of the intersection
@@ -95,15 +110,23 @@ function bearing(center, target) {
 }
 
 function intersectLines(lines, lineIndex, center) {
-  let current_line = lines[lineIndex];
+  log("lineIndex", lineIndex);
+  let currentLine = JSON.parse(JSON.stringify(lines[lineIndex])); // avoid changing the value inside the array because fuck pointers in javascript
   for(let i = 0; i < lines.length; i++) {
     if(i == lineIndex) continue;
-    let intersection = getIntersectionPoint(current_line, lines[i]);
+    let intersection = getIntersectionPoint(currentLine, lines[i]);
+    log("currentLine", currentLine);
+    log("lines[i]", lines[i]);
+    log("intersection", intersection);
     if(intersection == false) continue;
-    if(isAngleBetween(current_line.angle_b, lines[i].angle_a, lines[i].angle_b)) {current_line.b = intersection; current_line.angle_b = bearing(center, intersection)}
-    else {current_line.a = intersection; current_line.angle_a = bearing(center, intersection)}
+    log("isAngleBetween", isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b));
+    log("minAngle", lines[i].angle_a);
+    log("angle", currentLine.angle_a);
+    log("maxAngle", lines[i].angle_b);
+    if(isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b)) {currentLine.b = intersection; currentLine.angle_b = bearing(center, intersection)}
+    else {currentLine.a = intersection; currentLine.angle_a = bearing(center, intersection)}
   }
-  return current_line;
+  return currentLine;
 }
 
 function isAngleBetween(angle, min_angle, max_angle) {
@@ -138,11 +161,19 @@ function bubble(circles, circleIndex) {
   }
 
   // check intersections between lines
+  log("circleIndex", circleIndex);
+  log("circleCenter", center);
+  log("lines", lines);
   for(let i = 0; i < lines.length; i++) {
+    console.log("\n");
     let line = intersectLines(lines, i, center);
-    // let line = lines[i];
     intersectedLines.push(line);
+    P.push(
+      {point: line.a, index: circleIndex},
+      {point: line.b, index: circleIndex}
+    )
   }
+  console.log("\n\n\n\n\n");
 
   // create draw path
   if(intersectedLines.length == 0) {
