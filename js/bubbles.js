@@ -110,23 +110,40 @@ function bearing(center, target) {
 }
 
 function intersectLines(lines, lineIndex, center) {
-  log("lineIndex", lineIndex);
+  // log("lineIndex", lineIndex);
   let currentLine = JSON.parse(JSON.stringify(lines[lineIndex])); // avoid changing the value inside the array because fuck pointers in javascript
   for(let i = 0; i < lines.length; i++) {
     if(i == lineIndex) continue;
     let intersection = getIntersectionPoint(currentLine, lines[i]);
-    log("currentLine", currentLine);
-    log("lines[i]", lines[i]);
-    log("intersection", intersection);
+    // log("currentLine", currentLine);
+    // log("lines[i]", lines[i]);
+    // log("intersection", intersection);
     if(intersection == false) continue;
-    log("isAngleBetween", isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b));
-    log("minAngle", lines[i].angle_a);
-    log("angle", currentLine.angle_a);
-    log("maxAngle", lines[i].angle_b);
+    // log("isAngleBetween", isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b));
+    // log("minAngle", lines[i].angle_a);
+    // log("angle", currentLine.angle_a);
+    // log("maxAngle", lines[i].angle_b);
     if(isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b)) {currentLine.b = intersection; currentLine.angle_b = bearing(center, intersection)}
     else {currentLine.a = intersection; currentLine.angle_a = bearing(center, intersection)}
   }
   return currentLine;
+}
+
+function isLineAllowed(lines, lineIndex) {
+  for(let i = 0; i < lines.length; i++) {
+    if(i == lineIndex) continue;
+    if(
+      isAngleBetween(
+        lines[lineIndex].angle_a,
+        lines[i].angle_a,
+        lines[i].angle_b) ||
+      isAngleBetween(
+        lines[lineIndex].angle_b,
+        lines[i].angle_a,
+        lines[i].angle_b)
+      ) return false;
+  }
+  return true;
 }
 
 function isAngleBetween(angle, min_angle, max_angle) {
@@ -145,6 +162,7 @@ function bubble(circles, circleIndex) {
   
   let lines = [];
   let intersectedLines = [];
+  let points = [];
   let paths = [];
 
   // check intersections between circles
@@ -161,51 +179,83 @@ function bubble(circles, circleIndex) {
   }
 
   // check intersections between lines
-  log("circleIndex", circleIndex);
-  log("circleCenter", center);
-  log("lines", lines);
+  // log("circleIndex", circleIndex);
+  // log("circleCenter", center);
+  // log("lines", lines);
   for(let i = 0; i < lines.length; i++) {
-    console.log("\n");
+    // console.log("\n");
     let line = intersectLines(lines, i, center);
     intersectedLines.push(line);
-    P.push(
-      {point: line.a, index: circleIndex},
-      {point: line.b, index: circleIndex}
-    )
+    if(!isLineAllowed(lines, i)) continue;
+    points.push(
+      {x: line.a.x, y: line.a.y, angle: line.angle_a, lineId: i, pointId: "A"},
+      {x: line.b.x, y: line.b.y, angle: line.angle_b, lineId: i, pointId: "B"}
+    );
+    // P.push(
+    //   {point: line.a, index: circleIndex},
+    //   {point: line.b, index: circleIndex}
+    // )
   }
-  console.log("\n\n\n\n\n");
 
   // create draw path
-  if(intersectedLines.length == 0) {
+  if(points.length == 0) {
     let path = new Path2D();
     path.arc(center.x, center.y, radius, 0, TWO_PI);
     paths.push(path);
   }
   else {
-    // angles.sort((a, b) => a.angle - b.angle)
-    let last = intersectedLines.length - 1;
-    for(let i = 0; i < last; i++) {
+    // Arkonny's idea
+    points.sort((a, b) => a.angle - b.angle)
+    // log("points", points)
+    let i = 0;
+    let done = {};
+    while(true) {
+      // Valet's algorithm
+      let wantedLineId = points[i].lineId;
+      if(done[wantedLineId]) break;
+      let aIndex = points.findIndex((element) => element.lineId == wantedLineId && element.pointId == "A");
+      let bIndex = points.findIndex((element) => element.lineId == wantedLineId && element.pointId == "B");
+
       // draw line
       let path = new Path2D();
-      path.moveTo(intersectedLines[i].a.x, intersectedLines[i].a.y);
-      path.lineTo(intersectedLines[i].b.x, intersectedLines[i].b.y);
+      path.moveTo(points[aIndex].x, points[aIndex].y);
+      path.lineTo(points[bIndex].x, points[bIndex].y);
       paths.push(path);
 
       // draw arc to the new line
       path = new Path2D();
-      path.arc(center.x, center.y, radius, intersectedLines[i].angle_b, intersectedLines[i + 1].angle_a);
+      let nextIndex = bIndex + 1 == points.length? 0 : bIndex + 1;
+      path.arc(center.x, center.y, radius, points[bIndex].angle, points[points.findIndex((element) => element.lineId == points[nextIndex].lineId && element.pointId == "A")].angle);
       paths.push(path);
-    }
-    // draw line
-    let path = new Path2D();
-    path.moveTo(intersectedLines[last].a.x, intersectedLines[last].a.y);
-    path.lineTo(intersectedLines[last].b.x, intersectedLines[last].b.y);
-    paths.push(path);
 
-    // draw arc to the new line
-    path = new Path2D();
-    path.arc(center.x, center.y, radius, intersectedLines[last].angle_b, intersectedLines[0].angle_a);
-    paths.push(path);
+      done[wantedLineId] = true;
+      i = nextIndex;
+    }
+
+    
+    // let last = intersectedLines.length - 1;
+    // for(let i = 0; i < last; i++) {
+    //   // draw line
+    //   let path = new Path2D();
+    //   path.moveTo(intersectedLines[i].a.x, intersectedLines[i].a.y);
+    //   path.lineTo(intersectedLines[i].b.x, intersectedLines[i].b.y);
+    //   paths.push(path);
+
+    //   // draw arc to the new line
+    //   path = new Path2D();
+    //   path.arc(center.x, center.y, radius, intersectedLines[i].angle_b, intersectedLines[i + 1].angle_a);
+    //   paths.push(path);
+    // }
+    // // draw line
+    // let path = new Path2D();
+    // path.moveTo(intersectedLines[last].a.x, intersectedLines[last].a.y);
+    // path.lineTo(intersectedLines[last].b.x, intersectedLines[last].b.y);
+    // paths.push(path);
+
+    // // draw arc to the new line
+    // path = new Path2D();
+    // path.arc(center.x, center.y, radius, intersectedLines[last].angle_b, intersectedLines[0].angle_a);
+    // paths.push(path);
   }
 
   return paths;

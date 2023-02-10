@@ -15,7 +15,7 @@ const myCircles = [
   {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 200}, radius: 200},
   {center: {x: 200, y: 200}, radius: 200},
-  // {center: {x: 100, y: 100}, radius: 100},
+  // {center: {x: -00, y: 100}, radius: 100},
 ];
 
 // console.log(
@@ -45,13 +45,17 @@ const ctx = canvas.getContext("2d");
 ctx.translate(HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT);
 ctx.imageSmoothingEnabled = false;
 
+var SELECTED_CIRCLE = 0;
+var SELECTING = false;
 var MOUSE_POS = {x: 0, y: 0};
-canvas.addEventListener("mousemove", handleClick);
-canvas.addEventListener("touchstart", handleClick);
-canvas.addEventListener("touchmove", handleClick);
-canvas.addEventListener("touchend", handleClick);
+window.addEventListener("keypress", selectCircle);
+window.addEventListener("mousedown", selectCircle);
+canvas.addEventListener("mousemove", handleMouse);
+canvas.addEventListener("touchstart", handleMouse);
+canvas.addEventListener("touchmove", handleMouse);
+canvas.addEventListener("touchend", handleMouse);
 
-function handleClick(e) {
+function handleMouse(e) {
   var rect = canvas.getBoundingClientRect(), // abs. size of element
     scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
     scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
@@ -60,13 +64,24 @@ function handleClick(e) {
   MOUSE_POS.y = (e.clientY - rect.top ) * scaleY - HALF_SCREEN_HEIGHT     // been adjusted to be relative to element
 }
 
+function selectCircle(e) {  
+  if(SELECTING) {
+    SELECTING = false;
+  }
+  else {
+    SELECTED_CIRCLE++;
+    if(SELECTED_CIRCLE >= myCircles.length) SELECTED_CIRCLE = 0;
+    SELECTING = true;  
+  }
+}
+
 function draw() {
   clear();
   ctx.globalAlpha = 1;
   drawGrid();
   ctx.globalAlpha = 0.5;
 
-  myCircles[0].center = MOUSE_POS;
+  if(!SELECTING) myCircles[SELECTED_CIRCLE].center = JSON.parse(JSON.stringify(MOUSE_POS))    ;
 
   ctx.lineWidth = 3;
   ctx.strokeStyle = "blue";
@@ -74,12 +89,13 @@ function draw() {
   for(let i = 0; i < myCircles.length; i++) {
     ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
     drawShape(bubble(myCircles, i));
+    // console.log("\n\n\n\n\n");
   }
 
-  for(let i = 0; i < P.length; i ++) {
-    ctx.fillStyle = ctx.strokeStyle = "hsl(" + a * P[i].index + ",100%,50%)";;
-    drawPoint(P[i].point);
-  }
+  // for(let i = 0; i < P.length; i ++) {
+  //   ctx.fillStyle = ctx.strokeStyle = "hsl(" + a * P[i].index + ",100%,50%)";;
+  //   drawPoint(P[i].point);
+  // }
 }
 
 function clear() {
@@ -167,5 +183,5 @@ function drawShape(paths) {
   }
 }
 
-draw();
-// setInterval(draw, 30);
+// draw();
+setInterval(draw, 30);
