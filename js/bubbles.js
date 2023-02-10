@@ -111,6 +111,7 @@ function bearing(center, target) {
 
 function intersectLines(lines, lineIndex, center) {
   // log("lineIndex", lineIndex);
+  let hasChanged = false;
   let currentLine = JSON.parse(JSON.stringify(lines[lineIndex])); // avoid changing the value inside the array because fuck pointers in javascript
   for(let i = 0; i < lines.length; i++) {
     if(i == lineIndex) continue;
@@ -119,12 +120,16 @@ function intersectLines(lines, lineIndex, center) {
     // log("lines[i]", lines[i]);
     // log("intersection", intersection);
     if(intersection == false) continue;
+    hasChanged = true;
     // log("isAngleBetween", isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b));
     // log("minAngle", lines[i].angle_a);
     // log("angle", currentLine.angle_a);
     // log("maxAngle", lines[i].angle_b);
     if(isAngleBetween(currentLine.angle_b, lines[i].angle_a, lines[i].angle_b)) {currentLine.b = intersection; currentLine.angle_b = bearing(center, intersection)}
     else {currentLine.a = intersection; currentLine.angle_a = bearing(center, intersection)}
+  }
+  if(!hasChanged && !isLineAllowed(lines, lineIndex)) {
+    return false;
   }
   return currentLine;
 }
@@ -185,8 +190,8 @@ function bubble(circles, circleIndex) {
   for(let i = 0; i < lines.length; i++) {
     // console.log("\n");
     let line = intersectLines(lines, i, center);
+    if(line == false) {console.log(line); continue;}
     intersectedLines.push(line);
-    // if(!isLineAllowed(lines, i)) continue;
     points.push(
       {x: line.a.x, y: line.a.y, angle: line.angle_a, lineId: i, pointId: "A"},
       {x: line.b.x, y: line.b.y, angle: line.angle_b, lineId: i, pointId: "B"}
@@ -204,13 +209,12 @@ function bubble(circles, circleIndex) {
     paths.push(path);
   }
   else {
-    // Arkonny's idea
+    // Clock Points algorithm
     points.sort((a, b) => a.angle - b.angle)
     // log("points", points)
     let i = 0;
     let done = {};
     while(true) {
-      // Valet's algorithm
       let wantedLineId = points[i].lineId;
       if(done[wantedLineId]) break;
       let aIndex = points.findIndex((element) => element.lineId == wantedLineId && element.pointId == "A");

@@ -14,7 +14,7 @@ const myCircles = [
   {center: {x: 0, y: 0}, radius: 200},
   {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 200}, radius: 200},
-  {center: {x: 200, y: 200}, radius: 200},
+  // {center: {x: 200, y: 200}, radius: 200},
   // {center: {x: -00, y: 100}, radius: 100},
 ];
 
@@ -183,5 +183,5 @@ function drawShape(paths) {
   }
 }
 
-// draw();
-setInterval(draw, 30);
+draw();
+// setInterval(draw, 30);
