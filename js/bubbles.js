@@ -168,7 +168,7 @@ function bubble(circles, circleIndex) {
   let lines = [];
   let intersectedLines = [];
   let points = [];
-  let paths = [];
+  let path = new Path2D();
 
   // check intersections between circles
   for(let i = 0; i < circles.length; i++) {
@@ -190,7 +190,7 @@ function bubble(circles, circleIndex) {
   for(let i = 0; i < lines.length; i++) {
     // console.log("\n");
     let line = intersectLines(lines, i, center);
-    if(line == false) {console.log(line); continue;}
+    if(line == false) {continue;}
     intersectedLines.push(line);
     points.push(
       {x: line.a.x, y: line.a.y, angle: line.angle_a, lineId: i, pointId: "A"},
@@ -204,9 +204,7 @@ function bubble(circles, circleIndex) {
 
   // create draw path
   if(points.length == 0) {
-    let path = new Path2D();
     path.arc(center.x, center.y, radius, 0, TWO_PI);
-    paths.push(path);
   }
   else {
     // Clock Points algorithm
@@ -221,16 +219,12 @@ function bubble(circles, circleIndex) {
       let bIndex = points.findIndex((element) => element.lineId == wantedLineId && element.pointId == "B");
 
       // draw line
-      let path = new Path2D();
       path.moveTo(points[aIndex].x, points[aIndex].y);
       path.lineTo(points[bIndex].x, points[bIndex].y);
-      paths.push(path);
 
       // draw arc to the new line
-      path = new Path2D();
       let nextIndex = bIndex + 1 == points.length? 0 : bIndex + 1;
       path.arc(center.x, center.y, radius, points[bIndex].angle, points[points.findIndex((element) => element.lineId == points[nextIndex].lineId && element.pointId == "A")].angle);
-      paths.push(path);
 
       done[wantedLineId] = true;
       i = nextIndex;
@@ -262,5 +256,5 @@ function bubble(circles, circleIndex) {
     // paths.push(path);
   }
 
-  return paths;
+  return path;
 }

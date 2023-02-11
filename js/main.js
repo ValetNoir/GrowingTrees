@@ -11,10 +11,9 @@ const AXIS_NUMBER_FREQUENCY = 250;
 
 
 const myCircles = [
-  {center: {x: 0, y: 0}, radius: 200},
-  {center: {x: 200, y: 0}, radius: 200},
-  {center: {x: 0, y: 200}, radius: 200},
-  // {center: {x: 200, y: 200}, radius: 200},
+  // {growthVelocity: 0.5, velocity: {x: 0, y: -1}, center: {x: 200, y: 0}, radius: 200},
+  // {growthVelocity: 0.5, velocity: {x: 0, y: -1}, center: {x: 0, y: 100}, radius: 200},
+  // {growthVelocity: 0.5, velocity: {x: 0, y: -1}, center: {x: 200, y: 200}, radius: 200},
   // {center: {x: -00, y: 100}, radius: 100},
 ];
 
@@ -65,14 +64,66 @@ function handleMouse(e) {
 }
 
 function selectCircle(e) {  
-  if(SELECTING) {
-    SELECTING = false;
+  let closest = {index: -1, dist: Infinity};
+  for(let i = 0; i < myCircles.length; i++) {
+    dist = Math.hypot(MOUSE_POS.x - myCircles[SELECTED_CIRCLE].center.x, MOUSE_POS.y - myCircles[SELECTED_CIRCLE].center.y);
+    if(dist < closest.dist) {
+      closest.index = i;
+      closest.dist = dist;
+    }
   }
-  else {
-    SELECTED_CIRCLE++;
-    if(SELECTED_CIRCLE >= myCircles.length) SELECTED_CIRCLE = 0;
-    SELECTING = true;  
+  console.log(closest.index)
+
+  if(closest.index != -1) {
+    if(closest.dist <= myCircles[closest.index].radius) {
+      console.log(closest.index)
+      myCircles.splice(closest.index, 1);
+    }
   }
+  // if(SELECTING) {
+  //   SELECTING = false;
+  // }
+  // else {
+  //   SELECTED_CIRCLE++;
+  //   if(SELECTED_CIRCLE >= myCircles.length) SELECTED_CIRCLE = 0;
+  //   myCircles[SELECTED_CIRCLE].center = JSON.parse(JSON.stringify(MOUSE_POS));
+  //   SELECTING = true;  
+  // }
+}
+
+let spawnTimer = 0;
+let max = 40;
+let spawnRate = 1;
+function actualize() {
+  // if(!SELECTING) {
+  //   myCircles[SELECTED_CIRCLE].velocity.x += (MOUSE_POS.x - myCircles[SELECTED_CIRCLE].center.x) / 10;
+  //   myCircles[SELECTED_CIRCLE].velocity.y += (MOUSE_POS.y - myCircles[SELECTED_CIRCLE].center.y) / 10;
+  // }
+  spawnTimer--;
+  if(spawnTimer <= 0) {
+    for(let i = 0; i < spawnRate; i++) {
+      myCircles.push({
+        up: 2.5 + Math.random() * 5,
+        growthVelocity: 0.5 + Math.random() * 1.5,
+        center: {x: Math.random() * SCREEN_WIDTH - 1500, y: HALF_SCREEN_HEIGHT},
+        velocity: {x: 0, y: 0},
+        radius: 50 + Math.random() * 200
+      });
+    }
+    spawnRate += 0.01;
+    max = max / 1.005;
+    spawnTimer = max;
+  }
+
+  for(let i = 0; i < myCircles.length; i++) {
+    myCircles[i].radius += myCircles[i].growthVelocity;
+    myCircles[i].center.x += myCircles[i].velocity.x;
+    myCircles[i].center.y += myCircles[i].velocity.y - myCircles[i].up;
+    myCircles[i].velocity.x = 0;
+    myCircles[i].velocity.y = 0;
+  }
+
+  draw();
 }
 
 function draw() {
@@ -81,14 +132,12 @@ function draw() {
   drawGrid();
   ctx.globalAlpha = 0.5;
 
-  if(!SELECTING) myCircles[SELECTED_CIRCLE].center = JSON.parse(JSON.stringify(MOUSE_POS))    ;
-
   ctx.lineWidth = 3;
   ctx.strokeStyle = "blue";
   let a = 360 / myCircles.length - 1;
   for(let i = 0; i < myCircles.length; i++) {
-    ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
-    drawShape(bubble(myCircles, i));
+    ctx.fillStyle = "hsl(" + a * i + ",100%,50%)";
+    ctx.fill(bubble(myCircles, i));
     // console.log("\n\n\n\n\n");
   }
 
@@ -183,5 +232,5 @@ function drawShape(paths) {
   }
 }
 
-draw();
-// setInterval(draw, 30);
+// draw();
+setInterval(actualize, 30);
