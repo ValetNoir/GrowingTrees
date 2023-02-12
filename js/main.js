@@ -12,9 +12,9 @@ const AXIS_NUMBER_FREQUENCY = 250;
 
 const myCircles = [
   {center: {x: 0, y: 0}, radius: 200},
-  {center: {x: 200, y: 0}, radius: 200},
-  {center: {x: 0, y: 200}, radius: 200},
-  // {center: {x: 200, y: 200}, radius: 200},
+  {center: {x: 200, y: 0}, radius: 225},
+  {center: {x: 0, y: 200}, radius: 250},
+  {center: {x: 200, y: 200}, radius: 300},
   // {center: {x: -00, y: 100}, radius: 100},
 ];
 
@@ -79,11 +79,11 @@ function draw() {
   clear();
   ctx.globalAlpha = 1;
   drawGrid();
-  ctx.globalAlpha = 0.5;
+  ctx.globalAlpha = 1;
 
   if(!SELECTING) myCircles[SELECTED_CIRCLE].center = JSON.parse(JSON.stringify(MOUSE_POS))    ;
 
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 30;
   ctx.strokeStyle = "blue";
   let a = 360 / myCircles.length - 1;
   for(let i = 0; i < myCircles.length; i++) {
@@ -183,5 +183,5 @@ function drawShape(paths) {
   }
 }
 
-draw();
-// setInterval(draw, 30);
+// draw();
+setInterval(draw, 30);
