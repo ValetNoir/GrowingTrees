@@ -57,6 +57,8 @@ function directionOfPoint(center, direction, point) {
   // https://www.geeksforgeeks.org/direction-point-line-segment/
   // https://www.youtube.com/watch?v=VMVuKpj_RQQ
 
+  let notAnArgument = center;
+
   // subtracting co-ordinates of point A
   // from B and P, to make A as origin
   let a = {x: direction.x - center.x, y: direction.y - center.y};
@@ -99,6 +101,17 @@ function getIntersectionPoint(line1, line2) {
   }
 
   return final;
+}
+
+function getDist(center, target) {
+  return Math.hypot(center.x - target.x, center.y - target.y);
+}
+
+function getPoint(center, angle, distance) {
+  return {
+    x: center.x + distance * Math.cos(angle),
+    y: center.y + distance * Math.sin(angle)
+  };
 }
 
 function bearing(center, target) {
@@ -168,7 +181,7 @@ function bubble(circles, circleIndex) {
   let lines = [];
   let intersectedLines = [];
   let points = [];
-  let paths = [];
+  let path = new Path2D();
 
   // check intersections between circles
   for(let i = 0; i < circles.length; i++) {
@@ -190,23 +203,21 @@ function bubble(circles, circleIndex) {
   for(let i = 0; i < lines.length; i++) {
     // console.log("\n");
     let line = intersectLines(lines, i, center);
-    if(line == false) {console.log(line); continue;}
+    if(line == false) {continue;}
     intersectedLines.push(line);
     points.push(
       {x: line.a.x, y: line.a.y, angle: line.angle_a, lineId: i, pointId: "A"},
       {x: line.b.x, y: line.b.y, angle: line.angle_b, lineId: i, pointId: "B"}
     );
-    // P.push(
-    //   {point: line.a, index: circleIndex},
-    //   {point: line.b, index: circleIndex}
-    // )
+    P.push(
+      {point: line.a, index: circleIndex},
+      {point: line.b, index: circleIndex}
+    )
   }
 
   // create draw path
   if(points.length == 0) {
-    let path = new Path2D();
     path.arc(center.x, center.y, radius, 0, TWO_PI);
-    paths.push(path);
   }
   else {
     // Clock Points algorithm
@@ -221,46 +232,19 @@ function bubble(circles, circleIndex) {
       let bIndex = points.findIndex((element) => element.lineId == wantedLineId && element.pointId == "B");
 
       // draw line
-      let path = new Path2D();
       path.moveTo(points[aIndex].x, points[aIndex].y);
       path.lineTo(points[bIndex].x, points[bIndex].y);
-      paths.push(path);
 
       // draw arc to the new line
-      path = new Path2D();
       let nextIndex = bIndex + 1 == points.length? 0 : bIndex + 1;
-      path.arc(center.x, center.y, radius, points[bIndex].angle, points[points.findIndex((element) => element.lineId == points[nextIndex].lineId && element.pointId == "A")].angle);
-      paths.push(path);
+      let nextPoint = points[points.findIndex((element) => element.lineId == points[nextIndex].lineId && element.pointId == "A")];
+      if(Math.round(points[bIndex].x) != Math.round(nextPoint.x) && Math.round(points[bIndex].y) != Math.round(nextPoint.y))
+        path.arc(center.x, center.y, radius, points[bIndex].angle, nextPoint.angle);
 
       done[wantedLineId] = true;
       i = nextIndex;
     }
-
-    
-    // let last = intersectedLines.length - 1;
-    // for(let i = 0; i < last; i++) {
-    //   // draw line
-    //   let path = new Path2D();
-    //   path.moveTo(intersectedLines[i].a.x, intersectedLines[i].a.y);
-    //   path.lineTo(intersectedLines[i].b.x, intersectedLines[i].b.y);
-    //   paths.push(path);
-
-    //   // draw arc to the new line
-    //   path = new Path2D();
-    //   path.arc(center.x, center.y, radius, intersectedLines[i].angle_b, intersectedLines[i + 1].angle_a);
-    //   paths.push(path);
-    // }
-    // // draw line
-    // let path = new Path2D();
-    // path.moveTo(intersectedLines[last].a.x, intersectedLines[last].a.y);
-    // path.lineTo(intersectedLines[last].b.x, intersectedLines[last].b.y);
-    // paths.push(path);
-
-    // // draw arc to the new line
-    // path = new Path2D();
-    // path.arc(center.x, center.y, radius, intersectedLines[last].angle_b, intersectedLines[0].angle_a);
-    // paths.push(path);
   }
 
-  return paths;
+  return path;
 }

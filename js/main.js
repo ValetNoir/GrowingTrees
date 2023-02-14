@@ -14,8 +14,8 @@ const myCircles = [
   {center: {x: 0, y: 0}, radius: 200},
   {center: {x: 200, y: 0}, radius: 200},
   {center: {x: 0, y: 200}, radius: 200},
-  // {center: {x: 200, y: 200}, radius: 200},
-  // {center: {x: -00, y: 100}, radius: 100},
+  {center: {x: 200, y: 200}, radius: 200},
+  // {center: {x: -100, y: 100}, radius: 100},
 ];
 
 // console.log(
@@ -88,14 +88,20 @@ function draw() {
   let a = 360 / myCircles.length - 1;
   for(let i = 0; i < myCircles.length; i++) {
     ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
-    drawShape(bubble(myCircles, i));
+    ctx.fillStyle = "hsl(" + a * i + ",50%,50%)";
+    let shape = bubble(myCircles, i);
+    ctx.fill(shape, "nonzero");
+    ctx.stroke(shape);
+    // drawShape(bubble(myCircles, i));
     // console.log("\n\n\n\n\n");
   }
 
-  // for(let i = 0; i < P.length; i ++) {
-  //   ctx.fillStyle = ctx.strokeStyle = "hsl(" + a * P[i].index + ",100%,50%)";;
-  //   drawPoint(P[i].point);
-  // }
+  ctx.globalAlpha = 0.3;
+  for(let i = 0; i < P.length; i ++) {
+    ctx.fillStyle = ctx.strokeStyle = "hsl(" + a * P[i].index + ",100%,50%)";;
+    drawPoint(P[i].point);
+  }
+  P = [];
 }
 
 function clear() {
@@ -183,5 +189,5 @@ function drawShape(paths) {
   }
 }
 
-draw();
-// setInterval(draw, 30);
+// draw();
+setInterval(draw, 30);
