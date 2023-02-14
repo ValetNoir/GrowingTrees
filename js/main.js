@@ -79,17 +79,17 @@ function draw() {
   clear();
   ctx.globalAlpha = 1;
   drawGrid();
-  ctx.globalAlpha = 0.5;
+  ctx.globalAlpha = 1;
 
   if(!SELECTING) myCircles[SELECTED_CIRCLE].center = JSON.parse(JSON.stringify(MOUSE_POS))    ;
 
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 30;
   ctx.strokeStyle = "blue";
   let a = 360 / myCircles.length - 1;
   for(let i = 0; i < myCircles.length; i++) {
     ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
     ctx.fillStyle = "hsl(" + a * i + ",50%,50%)";
-    let shape = bubble(myCircles, i);
+    // let shape = bubble(myCircles, i);
     ctx.fill(shape, "nonzero");
     ctx.stroke(shape);
     // drawShape(bubble(myCircles, i));
