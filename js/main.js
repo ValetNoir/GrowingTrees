@@ -89,8 +89,8 @@ function draw() {
   for(let i = 0; i < myCircles.length; i++) {
     ctx.strokeStyle = "hsl(" + a * i + ",100%,50%)";
     ctx.fillStyle = "hsl(" + a * i + ",50%,50%)";
-    // let shape = bubble(myCircles, i);
-    ctx.fill(shape, "nonzero");
+    let shape = bubble(myCircles, i);
+    // ctx.fill(shape, "nonzero");
     ctx.stroke(shape);
     // drawShape(bubble(myCircles, i));
     // console.log("\n\n\n\n\n");
